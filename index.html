@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Flow 완전 정복(김가경 강사)/title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        html { scroll-behavior: smooth; }
+        .diamond-shape { width: 80px; height: 80px; transform: rotate(45deg); display: flex; align-items: center; justify-content: center; }
+        .diamond-text { transform: rotate(-45deg); text-align: center; font-size: 0.875rem; font-weight: bold; }
+        .node-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .active-node { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4); border-color: #2563eb; }
+        .dimmed-node { opacity: 0.4; filter: grayscale(100%); }
+    </style>
+</head>
+<body class="bg-[#fdfbf7] text-stone-800 font-sans antialiased flex flex-col md:flex-row min-h-screen">
+
+    <!-- Chosen Palette: Warm Sand & Soft Sky (stone-50/fdfbf7 background, blue-600, amber-500, emerald-600 accents for clear categorization) -->
+    <!-- Application Structure Plan: A responsive sidebar navigation layout. It guides students logically: 1. Data-driven justification (Chart) -> 2. Conceptual Difference (IA vs Flow) -> 3. Visual Vocabulary (Shapes) -> 4. Interactive Simulation. This non-linear dashboard allows students to explore at their own pace while providing clear context for every element. The interactive flow section directly tests their understanding of decision nodes. -->
+    <!-- Visualization & Content Choices: 1. Impact Chart -> Goal: Inform -> Bar Chart (Chart.js) -> Hover tooltips -> Justifies learning this skill quantitatively. 2. Comparison Cards -> Goal: Compare -> Flex layout blocks -> Hover effects -> Clarifies IA (structure) vs Flow (journey). 3. Shape Guide -> Goal: Organize -> CSS Shapes (NO SVG) -> Click interactions -> Teaches standard symbols. 4. Flow Simulator -> Goal: Change/Process -> Interactive HTML nodes -> Step-by-step path selection -> Simulates real user logic. NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="w-full md:w-64 bg-stone-900 text-stone-100 p-6 flex flex-col md:fixed h-auto md:h-screen z-20 overflow-y-auto">
+        <h1 class="text-2xl font-extrabold mb-2 tracking-tight text-white">UX/UI Guide</h1>
+        <p class="text-stone-400 text-sm mb-8 border-b border-stone-700 pb-4">IA 기반 User Flow 설계</p>
+        
+        <ul class="space-y-2 flex-1" id="nav-menu">
+            <li><button data-target="section-intro" class="nav-btn w-full text-left px-4 py-3 rounded-lg bg-blue-600 text-white font-medium transition-colors">1. User Flow의 가치</button></li>
+            <li><button data-target="section-compare" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">2. IA vs User Flow</button></li>
+            <li><button data-target="section-shapes" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">3. 다이어그램 구성 요소</button></li>
+            <li><button data-target="section-simulator" class="nav-btn w-full text-left px-4 py-3 rounded-lg text-stone-300 hover:bg-stone-800 transition-colors">4. 실전 흐름 시뮬레이터</button></li>
+        </ul>
+        <div class="mt-8 pt-4 border-t border-stone-700 text-xs text-stone-500 text-center">
+            실무 중심 포트폴리오 메이킹
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full md:ml-64 p-6 md:p-12 overflow-x-hidden">
+        
+        <section id="section-intro" class="content-section mb-20 animate-fade-in block">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">User Flow란 무엇이며, 왜 중요한가요?</h2>
+                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    User Flow(사용자 흐름)는 사용자가 앱이나 웹사이트에서 <strong>특정 목표(예: 상품 구매, 회원가입)를 달성하기 위해 거치는 모든 단계</strong>를 시각화한 경로입니다. 우리는 왜 IA(정보 구조도)를 짜고 나서 이 흐름을 한 번 더 그려야 할까요? 데이터가 그 이유를 증명합니다.
+                </p>
+            </header>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 mt-8">
+                <h3 class="text-xl font-bold mb-2 text-center text-stone-800">User Flow 최적화 전후 전환율(Conversion Rate) 변화</h3>
+                <p class="text-center text-stone-500 text-sm mb-6">불필요한 단계를 제거하고 흐름을 개선했을 때의 비즈니스 임팩트 (단위: %)</p>
+                <div class="chart-container">
+                    <canvas id="impactChart"></canvas>
+                </div>
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg text-blue-800 text-sm">
+                    <strong>💡 핵심 요약:</strong> User Flow를 사전에 시각화하면, 사용자가 이탈할 만한 '병목 현상(Bottleneck)'을 개발 전에 미리 발견하고 수정하여 전환율을 크게 높일 수 있습니다.
+                </div>
+            </div>
+        </section>
+
+        <section id="section-compare" class="content-section mb-20 hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">IA (정보 구조도) vs User Flow</h2>
+                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    이 두 가지는 UX 설계의 핵심이지만 목적이 다릅니다. IA는 <strong>'공간의 지도(건물 구조도)'</strong>라면, User Flow는 <strong>'사용자의 발자취(이동 경로)'</strong>입니다. 아래 요소들을 클릭하여 차이점을 확인해 보세요.
+                </p>
+            </header>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-indigo-50 p-8 rounded-2xl border-2 border-indigo-100 hover:border-indigo-300 transition-colors cursor-pointer group">
+                    <div class="text-indigo-600 text-4xl mb-4">🗂️</div>
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-2">IA (Information Architecture)</h3>
+                    <p class="text-indigo-700 font-medium mb-6">"어떤 메뉴가 어디에 있는가?"</p>
+                    <ul class="space-y-3 text-stone-700">
+                        <li class="flex items-center gap-2"><span class="text-indigo-500">■</span> 서비스의 계층적 뼈대</li>
+                        <li class="flex items-center gap-2"><span class="text-indigo-500">■</span> 전체 메뉴와 페이지의 포함 관계</li>
+                        <li class="flex items-center gap-2"><span class="text-indigo-500">■</span> <strong>정적(Static)</strong>인 구조</li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-white rounded-lg opacity-80 group-hover:opacity-100 transition-opacity">
+                        <span class="text-sm font-bold text-stone-500 block mb-2">예시 구조</span>
+                        <div class="text-sm font-mono pl-2 border-l-2 border-indigo-200">
+                            홈<br>
+                            ├─ 상품 목록<br>
+                            │  └─ 상품 상세<br>
+                            └─ 마이페이지
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-8 rounded-2xl border-2 border-blue-100 hover:border-blue-300 transition-colors cursor-pointer group">
+                    <div class="text-blue-600 text-4xl mb-4">👣</div>
+                    <h3 class="text-2xl font-bold text-blue-900 mb-2">User Flow</h3>
+                    <p class="text-blue-700 font-medium mb-6">"목표를 위해 어떻게 이동하는가?"</p>
+                    <ul class="space-y-3 text-stone-700">
+                        <li class="flex items-center gap-2"><span class="text-blue-500">▶</span> 시간 순서에 따른 이동 경로</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-500">▶</span> 클릭, 화면 전환, 조건에 따른 분기</li>
+                        <li class="flex items-center gap-2"><span class="text-blue-500">▶</span> <strong>동적(Dynamic)</strong>인 여정</li>
+                    </ul>
+                    <div class="mt-6 p-4 bg-white rounded-lg opacity-80 group-hover:opacity-100 transition-opacity flex items-center gap-2 text-sm font-bold text-stone-600 overflow-x-auto">
+                        <div class="px-2 py-1 bg-stone-100 rounded">홈</div> ➔ 
+                        <div class="px-2 py-1 bg-stone-100 rounded">상세페이지</div> ➔ 
+                        <div class="px-2 py-1 bg-blue-100 text-blue-800 rounded">결제클릭</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-shapes" class="content-section mb-20 hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">다이어그램 구성 요소 (표준 기호)</h2>
+                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    흐름도를 그릴 때는 누구나 직관적으로 이해할 수 있도록 약속된 도형을 사용합니다. 아래의 카드들을 클릭하여 각 도형의 의미와 사용처를 학습하세요.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <button onclick="updateShapeDesc('start')" class="bg-white p-6 rounded-xl border-2 border-stone-200 hover:border-emerald-500 text-center transition-all focus:outline-none focus:ring-4 focus:ring-emerald-100">
+                    <div class="w-24 h-12 bg-emerald-100 border-2 border-emerald-500 rounded-full mx-auto mb-4 flex items-center justify-center font-bold text-emerald-700">Start</div>
+                    <h4 class="font-bold text-stone-800">타원 (Start / End)</h4>
+                </button>
+                
+                <button onclick="updateShapeDesc('screen')" class="bg-white p-6 rounded-xl border-2 border-stone-200 hover:border-blue-500 text-center transition-all focus:outline-none focus:ring-4 focus:ring-blue-100">
+                    <div class="w-24 h-16 bg-blue-50 border-2 border-blue-400 rounded-md mx-auto mb-4 flex items-center justify-center font-bold text-blue-700">Screen</div>
+                    <h4 class="font-bold text-stone-800">직사각형 (Screen / Action)</h4>
+                </button>
+
+                <button onclick="updateShapeDesc('decision')" class="bg-white p-6 rounded-xl border-2 border-stone-200 hover:border-amber-500 text-center transition-all focus:outline-none focus:ring-4 focus:ring-amber-100">
+                    <div class="diamond-shape bg-amber-50 border-2 border-amber-400 mx-auto mb-4 mt-2">
+                        <span class="diamond-text text-amber-700">조건?</span>
+                    </div>
+                    <h4 class="font-bold text-stone-800 mt-6">마름모 (Decision)</h4>
+                </button>
+            </div>
+
+            <div id="shape-desc-box" class="mt-8 p-6 bg-stone-100 rounded-xl border border-stone-300 min-h-[120px] flex items-center">
+                <p class="text-stone-600 text-lg">위의 도형을 클릭하면 상세 설명이 나타납니다.</p>
+            </div>
+        </section>
+
+        <section id="section-simulator" class="content-section mb-20 hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">실전 흐름 시뮬레이터: E-commerce 결제</h2>
+                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    앞서 배운 개념을 종합하여 실제 User Flow를 체험해 봅시다. 아래의 컨트롤 패널을 사용하여 사용자가 <strong>'로그인 상태'</strong>인지 <strong>'비로그인 상태'</strong>인지에 따라 흐름(마름모 분기점)이 어떻게 달라지는지 확인하세요.
+                </p>
+            </header>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="w-full lg:w-1/3 bg-white p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col justify-center h-fit sticky top-6">
+                    <h3 class="font-bold text-stone-800 mb-4 border-b pb-2">사용자 조건 설정</h3>
+                    <p class="text-sm text-stone-600 mb-4">사용자가 '결제하기' 버튼을 눌렀을 때의 상태를 선택하고 흐름을 시작하세요.</p>
+                    
+                    <div class="flex gap-4 mb-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="loginState" value="yes" checked class="w-5 h-5 text-blue-600">
+                            <span class="font-medium">로그인 유저</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="loginState" value="no" class="w-5 h-5 text-amber-600">
+                            <span class="font-medium">비회원 (게스트)</span>
+                        </label>
+                    </div>
+
+                    <button id="btn-simulate" class="w-full py-3 bg-stone-900 text-white rounded-lg font-bold hover:bg-stone-800 transition-colors shadow-md active:transform active:scale-95">
+                        흐름 실행하기 ▶
+                    </button>
+                    <button id="btn-reset" class="w-full py-2 mt-3 bg-stone-100 text-stone-600 rounded-lg font-medium hover:bg-stone-200 transition-colors hidden">
+                        초기화
+                    </button>
+                    
+                    <div id="simulation-status" class="mt-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-sm font-bold opacity-0 transition-opacity">
+                        <!-- 상태 메시지 출력 영역 -->
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-2/3 bg-stone-50 p-8 rounded-2xl border-2 border-dashed border-stone-300 flex flex-col items-center py-12 relative">
+                    
+                    <div id="node-1" class="node-transition px-6 py-2 bg-emerald-100 border-2 border-emerald-500 rounded-full font-bold text-emerald-700 shadow-sm z-10">
+                        장바구니 진입
+                    </div>
+                    
+                    <div class="w-1 h-8 bg-stone-300"></div>
+                    <div class="text-stone-300 text-xs mb-1 -mt-2">▼</div>
+
+                    <div id="node-2" class="node-transition px-8 py-3 bg-blue-50 border-2 border-blue-400 rounded-md font-bold text-blue-800 shadow-sm z-10">
+                        [화면] 장바구니 리스트
+                    </div>
+
+                    <div class="w-1 h-8 bg-stone-300"></div>
+                    <div class="text-stone-300 text-xs mb-1 -mt-2">▼</div>
+
+                    <div id="node-3" class="node-transition px-6 py-2 bg-white border-2 border-stone-400 rounded-md font-medium text-stone-700 shadow-sm z-10">
+                        '결제하기' 행동(Click)
+                    </div>
+
+                    <div class="w-1 h-8 bg-stone-300"></div>
+                    <div class="text-stone-300 text-xs mb-1 -mt-2">▼</div>
+
+                    <div class="relative w-full flex justify-center mb-8 mt-4">
+                        <div id="node-4" class="node-transition diamond-shape bg-amber-50 border-2 border-amber-400 shadow-sm z-10">
+                            <span class="diamond-text text-amber-800 leading-tight">로그인<br>상태?</span>
+                        </div>
+                        
+                        <!-- 분기 No (가로 방향 화살표) -->
+                        <div id="path-no" class="absolute top-1/2 left-1/2 w-32 h-1 bg-stone-300 origin-left transition-colors duration-300" style="transform: translateY(-50%); z-index: 0;"></div>
+                        <span id="label-no" class="absolute top-0 right-1/4 text-xs font-bold text-stone-400 bg-stone-50 px-1 transition-colors">No</span>
+                        
+                        <div id="node-5" class="absolute top-1/2 right-4 transform -translate-y-1/2 node-transition px-4 py-3 bg-blue-50 border-2 border-blue-400 rounded-md font-bold text-blue-800 shadow-sm text-sm z-10 w-32 text-center">
+                            [화면] 로그인 및 회원가입
+                        </div>
+                    </div>
+
+                    <!-- 분기 Yes (세로 방향) -->
+                    <span id="label-yes" class="text-xs font-bold text-stone-400 bg-stone-50 px-1 z-20 -mt-8 transition-colors">Yes</span>
+                    <div id="path-yes" class="w-1 h-12 bg-stone-300 transition-colors duration-300 -mt-2"></div>
+                    <div class="text-stone-300 text-xs mb-1 -mt-2 z-10" id="arrow-yes">▼</div>
+
+                    <div id="node-6" class="node-transition px-8 py-3 bg-blue-50 border-2 border-blue-400 rounded-md font-bold text-blue-800 shadow-sm z-10">
+                        [화면] 결제 정보 입력
+                    </div>
+
+                    <div class="w-1 h-8 bg-stone-300"></div>
+                    <div class="text-stone-300 text-xs mb-1 -mt-2">▼</div>
+
+                    <div id="node-7" class="node-transition px-6 py-2 bg-emerald-100 border-2 border-emerald-500 rounded-full font-bold text-emerald-700 shadow-sm z-10">
+                        결제 완료 (End)
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // 1. Navigation Logic
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.content-section');
+
+        function switchSection(targetId) {
+            sections.forEach(sec => {
+                sec.classList.remove('block');
+                sec.classList.add('hidden');
+            });
+            document.getElementById(targetId).classList.remove('hidden');
+            document.getElementById(targetId).classList.add('block');
+            document.getElementById(targetId).style.animation = 'fadeIn 0.5s ease-out forwards';
+
+            navButtons.forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-stone-300');
+            });
+            const activeBtn = document.querySelector(`[data-target="${targetId}"]`);
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+            activeBtn.classList.remove('text-stone-300');
+            
+            window.scrollTo(0, 0);
+
+            // Re-render chart if intro section
+            if(targetId === 'section-intro' && window.myChart) {
+                window.myChart.update();
+            }
+        }
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                switchSection(e.target.getAttribute('data-target'));
+            });
+        });
+
+        // Add keyframes via JS
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        `;
+        document.head.appendChild(style);
+
+
+        // 2. Chart.js Initialization
+        const ctx = document.getElementById('impactChart').getContext('2d');
+        window.myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['회원가입 완료', '장바구니 담기', '최종 결제 완료'],
+                datasets: [
+                    {
+                        label: '최적화 전 (%)',
+                        data: [42, 35, 12],
+                        backgroundColor: '#d6d3d1', // stone-300
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'User Flow 최적화 후 (%)',
+                        data: [68, 55, 38],
+                        backgroundColor: '#2563eb', // blue-600
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { family: 'sans-serif' } } },
+                    tooltip: {
+                        backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f5f5f4' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+
+        // 3. Shape Description Logic
+        const shapeDescriptions = {
+            start: {
+                title: '타원 (Start / End Point)',
+                desc: '사용자의 여정이 시작되는 지점(예: 앱 실행, 푸시 알림 클릭)과 성공적으로 종료되거나 이탈하는 지점(예: 결제 완료, 가입 취소)을 명확하게 표시합니다. 전체 흐름의 앞뒤 경계를 만들어줍니다.',
+                color: 'text-emerald-700'
+            },
+            screen: {
+                title: '직사각형 (Screen / Action)',
+                desc: '사용자가 마주하는 화면(UI) 자체이거나, 그 화면에서 사용자가 취하는 행동(버튼 클릭, 폼 입력 등)을 의미합니다. 와이어프레임 단계로 넘어가기 전 필요한 화면 목록을 파악하는 데 가장 많이 쓰이는 핵심 기호입니다.',
+                color: 'text-blue-700'
+            },
+            decision: {
+                title: '마름모 (Decision / Conditional)',
+                desc: '흐름이 여러 갈래로 나뉘는 분기점입니다. 보통 예/아니오(Yes/No)로 대답할 수 있는 질문형태로 작성합니다. (예: 로그인 했는가?, 재고가 있는가?). 이 분기점 설계가 꼼꼼할수록 예외 상황(Edge Case)에 강한 UI를 만들 수 있습니다.',
+                color: 'text-amber-700'
+            }
+        };
+
+        window.updateShapeDesc = function(type) {
+            const box = document.getElementById('shape-desc-box');
+            const data = shapeDescriptions[type];
+            box.innerHTML = `
+                <div>
+                    <h5 class="text-xl font-bold ${data.color} mb-2">${data.title}</h5>
+                    <p class="text-stone-700 leading-relaxed">${data.desc}</p>
+                </div>
+            `;
+            box.style.animation = 'none';
+            box.offsetHeight; /* trigger reflow */
+            box.style.animation = 'fadeIn 0.3s ease-out';
+        };
+
+
+        // 4. Interactive Simulator Logic
+        const btnSimulate = document.getElementById('btn-simulate');
+        const btnReset = document.getElementById('btn-reset');
+        const statusBox = document.getElementById('simulation-status');
+        const allNodes = [1, 2, 3, 4, 5, 6, 7].map(num => document.getElementById(`node-${num}`));
+
+        const pathYes = document.getElementById('path-yes');
+        const pathNo = document.getElementById('path-no');
+        const labelYes = document.getElementById('label-yes');
+        const labelNo = document.getElementById('label-no');
+
+        function resetSimulation() {
+            allNodes.forEach(node => {
+                node.classList.remove('active-node', 'dimmed-node');
+            });
+            pathYes.classList.remove('bg-blue-500');
+            pathYes.classList.add('bg-stone-300');
+            pathNo.classList.remove('bg-blue-500');
+            pathNo.classList.add('bg-stone-300');
+            labelYes.classList.remove('text-blue-600');
+            labelNo.classList.remove('text-blue-600');
+            
+            statusBox.style.opacity = '0';
+            btnSimulate.style.display = 'block';
+            btnReset.style.display = 'none';
+        }
+
+        function highlightNode(nodeElement) {
+            nodeElement.classList.add('active-node');
+            nodeElement.classList.remove('dimmed-node');
+        }
+
+        function dimNode(nodeElement) {
+            nodeElement.classList.add('dimmed-node');
+            nodeElement.classList.remove('active-node');
+        }
+
+        btnSimulate.addEventListener('click', async () => {
+            resetSimulation();
+            btnSimulate.style.display = 'none';
+            btnReset.style.display = 'block';
+            
+            const isLogin = document.querySelector('input[name="loginState"]:checked').value === 'yes';
+            
+            statusBox.style.opacity = '1';
+            statusBox.className = `mt-6 p-4 rounded-lg text-sm font-bold opacity-100 transition-opacity ${isLogin ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`;
+            statusBox.innerHTML = '시뮬레이션 시작: 장바구니 진입...';
+
+            const delay = ms => new Promise(res => setTimeout(res, ms));
+
+            // 공통 흐름
+            highlightNode(allNodes[0]); // Start
+            await delay(800);
+            dimNode(allNodes[0]); highlightNode(allNodes[1]); // Screen
+            statusBox.innerHTML = '사용자가 장바구니 리스트를 확인합니다.';
+            await delay(800);
+            dimNode(allNodes[1]); highlightNode(allNodes[2]); // Action
+            statusBox.innerHTML = '사용자가 결제하기 버튼을 클릭했습니다.';
+            await delay(800);
+            dimNode(allNodes[2]); highlightNode(allNodes[3]); // Decision
+            statusBox.innerHTML = '시스템 확인: 조건 분기점 (로그인 상태 확인)';
+            await delay(1200);
+
+            if (isLogin) {
+                dimNode(allNodes[3]);
+                dimNode(allNodes[4]); // Login node dimmed
+                pathYes.classList.replace('bg-stone-300', 'bg-blue-500');
+                labelYes.classList.add('text-blue-600');
+                highlightNode(allNodes[5]); // Payment screen
+                statusBox.innerHTML = '결과 (Yes): 이미 로그인된 상태이므로 즉시 결제 화면으로 직행합니다. (단축 경로)';
+                await delay(1000);
+                dimNode(allNodes[5]); highlightNode(allNodes[6]); // End
+                statusBox.innerHTML = '여정 종료: 결제 완료';
+            } else {
+                pathNo.classList.replace('bg-stone-300', 'bg-blue-500');
+                labelNo.classList.add('text-blue-600');
+                dimNode(allNodes[3]);
+                dimNode(allNodes[5]); dimNode(allNodes[6]); // Payment/End dimmed
+                highlightNode(allNodes[4]); // Login screen
+                statusBox.innerHTML = '결과 (No): 비로그인 유저이므로 결제 전 회원가입/로그인 화면으로 우회합니다. (Edge Case 처리)';
+            }
+        });
+
+        btnReset.addEventListener('click', resetSimulation);
+
+    </script>
+</body>
+</html>
